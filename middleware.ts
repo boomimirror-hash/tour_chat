@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 const PROTECTED = ['/chat', '/packages', '/my']
 
-export async function proxy(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
