@@ -75,6 +75,20 @@ export default async function PackagesPage() {
     ]
 
     packages = await buildPackages(preference, fallbackAreas)
+
+    if (packages.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase.from('packages') as any).insert(
+        packages.map((pkg) => ({
+          id: pkg.id,
+          user_id: user.id,
+          preference_id: (preference as { id: string }).id,
+          spots: pkg.spots,
+          accommodations: pkg.accommodations,
+          recommended_dates: pkg.recommendedDates,
+        }))
+      )
+    }
   }
 
   return (

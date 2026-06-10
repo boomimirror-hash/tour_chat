@@ -14,7 +14,10 @@ export async function POST(request: NextRequest) {
   let fullText = ''
   const encoder = new TextEncoder()
 
-  const geminiStream = await streamChat(messages).catch(() => null)
+  const geminiStream = await streamChat(messages).catch((e) => {
+    console.error('[chat] streamChat error:', e?.message ?? e)
+    return null
+  })
   if (!geminiStream) {
     return NextResponse.json({ error: 'AI service unavailable' }, { status: 503 })
   }

@@ -131,7 +131,7 @@ async function buildOnePackage(
   const recommendedDates = congestionResult.status === 'fulfilled' ? congestionResult.value : []
 
   return {
-    id: `${areaCode}-${Date.now()}`,
+    id: crypto.randomUUID(),
     spots,
     accommodations,
     recommendedDates,
