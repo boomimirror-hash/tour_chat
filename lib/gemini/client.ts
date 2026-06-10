@@ -55,7 +55,9 @@ export async function streamChat(messages: ChatMessage[]): Promise<ReadableStrea
     systemInstruction: SYSTEM_PROMPT,
   })
 
-  const history = messages.slice(0, -1).map((m) => ({
+  const historyRaw = messages.slice(0, -1)
+  const firstUserIdx = historyRaw.findIndex((m) => m.role === 'user')
+  const history = (firstUserIdx === -1 ? [] : historyRaw.slice(firstUserIdx)).map((m) => ({
     role: m.role,
     parts: [{ text: m.content }],
   }))
