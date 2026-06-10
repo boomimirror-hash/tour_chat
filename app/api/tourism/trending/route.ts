@@ -13,24 +13,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const debug = request.headers.get('x-debug') === '1'
-  if (debug) {
-    const apiKey = process.env.BIGDATA_API_KEY ?? ''
-    const now = new Date()
-    const y = now.getFullYear(), m = now.getMonth() + 1
-    const pm = m === 1 ? 12 : m - 1, py = m === 1 ? y - 1 : y
-    const makeUrl = (year: number, month: number) => {
-      const mm = String(month).padStart(2, '0')
-      const last = new Date(year, month, 0).getDate()
-      return `https://apis.data.go.kr/B551011/DataLabService/locgoRegnVisitrDDList?serviceKey=${apiKey}&MobileOS=ETC&MobileApp=TourismApp&_type=json&startYmd=${year}${mm}01&endYmd=${year}${mm}${last}&numOfRows=5`
-    }
-    const [r1, r2] = await Promise.all([
-      fetch(makeUrl(y, m)).then(r => r.json()).catch(e => ({ error: String(e) })),
-      fetch(makeUrl(py, pm)).then(r => r.json()).catch(e => ({ error: String(e) })),
-    ])
-    return NextResponse.json({ thisMonth: r1, prevMonth: r2 })
-  }
-
   const areas = await getTrendingAreas(20)
 
   if (areas.length === 0) {
