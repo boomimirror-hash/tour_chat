@@ -4,45 +4,41 @@ import { NextResponse, type NextRequest } from 'next/server'
 const PROTECTED = ['/chat', '/packages', '/my']
 
 export default async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
-
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
 
-  if (!supabaseUrl || !supabaseKey) return supabaseResponse
+  if (!supabaseUrl || !supabaseKey) return NextResponse.next()
+
+  let supabaseResponse = NextResponse.next({ request })
 
   try {
-    const supabase = createServerClient(
-      supabaseUrl,
-      supabaseKey,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll()
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-            supabaseResponse = NextResponse.next({ request })
-            cookiesToSet.forEach(({ name, value, options }) =>
-              supabaseResponse.cookies.set(name, value, options)
-            )
-          },
+    const supabase = createServerClient(supabaseUrl, supabaseKey, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
         },
-      }
-    )
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          supabaseResponse = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
+      },
+    })
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-    const pathname = request.nextUrl.pathname
-    const isProtected = PROTECTED.some((path) => pathname.startsWith(path))
-
-    if (isProtected && !user) {
+    const { pathname } = request.nextUrl
+    if (PROTECTED.some((p) => pathname.startsWith(p)) && !user) {
       const url = request.nextUrl.clone()
       url.pathname = '/login'
       return NextResponse.redirect(url)
     }
-  } catch {
-    // Supabase 설정 오류 시 요청 통과 (개별 페이지에서 처리)
+  } catch (err) {
+    console.error('[middleware] supabase error:', err)
   }
 
   return supabaseResponse
